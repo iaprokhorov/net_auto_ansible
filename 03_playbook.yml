@@ -1,0 +1,38 @@
+---
+
+- name: Network Getting IOS audit report
+  hosts: kmr_sw_access
+  connection: network_cli
+#  user: cisco
+  gather_facts: false
+
+  tasks:
+
+    - name: Task 1 - Gathering IOS facts
+      ios_facts:
+#        gather_subset: min
+      register: facts
+
+    - name: Task 2 - Creating a reports folder (if not already present)
+      file:                                            ## file is the Ansible module we are invoking
+        name: /etc/ansible/reports                     ## the name to give the new directory
+        state: directory                               ## parameter of the file module, creates a directory
+      run_once: true                                   ## instructs Ansible to only run this task once for the batch of hosts targeted in the playbook
+
+    - name: Task 3 - Generating the device reports
+      template:                                        ## template is the Ansible module we are invoking
+        src: /etc/ansible/templates/ios_report.j2      ## parameter of the template module, path to the Jinja2 template on our Ansible control node
+        dest: /etc/ansible/reports/{{ inventory_hostname }}.md      ## parameter of the template module, location to render the Jinja2 template
+
+    - name: Task 4 - Generating head of device reports
+      template:                                        ## template is the Ansible module we are invoking
+        src: /etc/ansible/templates/ios_report_head.j2      ## parameter of the template module, path to the Jinja2 template on our Ansible control node
+        dest: /etc/ansible/reports/ios_network_report.md      ## parameter of the template module, location to render the Jinja2 template
+
+    - name: Task 5 - Consolidating the device reports
+      assemble:                                        ## assemble is the Ansible module we are invoking
+        src: /etc/ansible/reports                                 ## parameter of the assemble module, path to the directory containing the individual device reports
+        dest: /etc/ansible/reports/ios_network_report.md            ## parameter of the assemble module, the file to create using the concatenation of the individual device reports
+      delegate_to: localhost                           ## runs this task on our Ansible control node
+      run_once: true
+

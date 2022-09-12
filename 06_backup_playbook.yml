@@ -1,0 +1,41 @@
+---
+#Backup cisco config
+
+- name: Backup Cisco Router or Switch
+  hosts: KIA
+  connection: network_cli
+  gather_facts: no
+
+  tasks:
+
+    - name: Task 1 - Accept ansible net hostname
+      ios_facts:
+        gather_subset: min
+
+    - name: Task 2 - Get current date
+      local_action: command date +%Y-%b-%d
+      register: date
+
+    - name: Task 3 - Get current time
+      local_action: command date +%H:%M
+      register: time
+
+    - name: Task 4 - Creating a reports folder (if not already present)
+      file:                                            ## file is the Ansible module we are invoking
+        name: /etc/ansible/data/backup_cfg/{{ date.stdout }}_at_{{ time.stdout }}            ## the name to give the new directory
+        state: directory                               ## parameter of the file module, creates a directory
+      run_once: true                                   ## instructs Ansible to only run this task once for the batch of hosts targeted in the playbook
+
+    - name: Task 5 - Get running-config and save it
+      ios_command:
+        commands:
+         - sh conf
+      register: config
+
+    - name: Task 6 - Save output to local directory
+      copy:
+        content: "{{ config.stdout[0] | replace('\\n', '\n') }}"
+        dest: /etc/ansible/data/backup_cfg/{{ date.stdout }}_at_{{ time.stdout }}/{{ ansible_net_hostname }}_{{ ansible_host }}.cfg
+
+    - name: Tasks 7 - Done
+      debug: msg="All tasks has been done on {{ date.stdout }} at {{ time.stdout }}."

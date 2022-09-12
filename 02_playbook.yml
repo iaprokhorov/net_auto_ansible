@@ -1,0 +1,44 @@
+---
+
+- name: Network Getting Started Second Playbook Extended
+  connection: network_cli
+  user: cisco
+  gather_facts: false
+  hosts: routers
+  become: yes
+  become_method: enable
+  ansible_become_password: cisco
+  tasks:
+
+    - name: Get config for IOS devices
+      ios_facts:
+        gather_subset: all
+
+    - name: Display the config
+      debug:
+        msg: "The hostname is {{ ansible_net_hostname }} and the OS is {{ ansible_net_version }}"
+
+    - name: Create Username
+      ios_config:
+        backup: yes
+        lines:
+          - username ansible priv 15 secret ansible
+
+    - name: Get changed config for IOS devices
+      ios_facts:
+        gather_subset: all
+
+#    - name: configure interface settings
+#      ios_config:
+#        backup: yes
+#        lines:
+#          - description === test interface ===
+#          - ip address 172.31.1.1 255.255.255.0
+#        parents: interface GigabitEthernet0/3
+
+#    - name: configure ip helpers on multiple interfaces
+#      ios_config:
+#        backup: yes
+#        lines:
+#          - description === Test Lo interface ===
+#        parents: "{{ item }}"

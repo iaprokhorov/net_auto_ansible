@@ -1,0 +1,19 @@
+---
+
+- name: Network Getting IOS audit report
+  hosts: dev_routers
+  connection: network_cli
+  gather_facts: false
+
+  tasks:
+
+    - name: Task 1 - Gathering IOS facts
+      ios_facts:
+        gather_subset: min
+      register: facts
+
+#    - debug: var=facts
+
+    - name: Display the config (IOS version)
+      debug:
+        msg: "The hostname is {{ ansible_net_hostname }} (SN: {{ansible_net_serialnum}}) and the OS is {{ ansible_net_version }}"
